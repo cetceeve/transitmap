@@ -1,9 +1,5 @@
-# must be underscore otherwise RUN rm ./target/release/deps/${my_appname}* will fail
-ARG my_appname=server
-
-FROM rust:bookworm as build
-ARG my_appname
-ENV my_appname=$my_appname
+FROM rust:bookworm AS build
+ARG TARGETPLATFORM
 
 WORKDIR /workspace/
 
@@ -22,23 +18,14 @@ COPY ./website/ ./website/
 
 # build, with dependency cache
 RUN --mount=type=cache,target=/usr/local/cargo/registry,id="reg-${TARGETPLATFORM}" \
-    --mount=type=cache,target=target,id="target-${my_appname}-${TARGETPLATFORM}" \
+    --mount=type=cache,target=target,id="target-server-${TARGETPLATFORM}" \
     cargo build --release && \
     mkdir bin && \
-    mv target/release/${my_appname} bin/${my_appname}
-
+    mv target/release/server bin/server
 
 # our final base
 FROM debian:bookworm-slim
-ARG my_appname
-ENV my_appname=$my_appname
-
-# install OS dependencies
 RUN apt-get update && apt-get install -y ca-certificates libssl-dev && rm -rf /var/lib/apt/lists/*
-
-# copy the build artifact from the build cache
-COPY --from=build /workspace/bin/${my_appname} /usr/local/bin/${my_appname}
+COPY --from=build /workspace/bin/server /usr/local/bin/server
 COPY ./website/ ./website/
-
-# set the startup command to run your binary
-CMD ${my_appname}
+CMD server
