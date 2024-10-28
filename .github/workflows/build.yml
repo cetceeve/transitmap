@@ -6,7 +6,7 @@ on:
 
 jobs:
   docker_build:
-    runs-on: "macos-latest"
+    runs-on: "ubuntu-latest"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -17,10 +17,10 @@ jobs:
           password: ${{secrets.DOCKER_PASS}}
       - name: Build and push event engine
         run: |
-            docker build --tag jonathanarns/sparkling-event-engine:arm64 -f event-engine.Dockerfile .
-            docker push jonathanarns/sparkling-event-engine:arm64
+            docker build --tag jonathanarns/sparkling-event-engine:latest -f event-engine.Dockerfile .
+            docker push jonathanarns/sparkling-event-engine:latest
 
       - name: Build and push server
         run: |
-            docker build --file server.Dockerfile --tag jonathanarns/sparkling-server:arm64 -f server.Dockerfile .
-            docker push jonathanarns/sparkling-server:arm64
+            docker build --file server.Dockerfile --tag jonathanarns/sparkling-server:latest -f server.Dockerfile .
+            docker push jonathanarns/sparkling-server:latest
