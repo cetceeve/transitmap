@@ -412,7 +412,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "event_engine"
+name = "event-engine"
 version = "0.1.0"
 dependencies = [
  "anyhow",
