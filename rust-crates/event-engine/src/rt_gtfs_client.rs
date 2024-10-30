@@ -19,6 +19,7 @@ lazy_static! {
         .expect("required env variable not set TRAFIKLAB_GTFS_RT_KEY");
     static ref TRANSPORT_AGENCIES: Vec<String> = [
         "dt",
+        "jlt",
         "klt",
         "krono",
         "orebro",
