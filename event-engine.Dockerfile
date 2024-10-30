@@ -3,6 +3,8 @@ ARG TARGETPLATFORM
 
 WORKDIR /workspace/
 
+RUN apt-get update && apt-get install -y protobuf-compiler
+
 # copy over workspace manifests
 COPY ./Cargo.lock ./Cargo.lock
 COPY ./Cargo.toml ./Cargo.toml

@@ -256,15 +256,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cmake"
-version = "0.1.51"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fb1e43aa7fd152b1f968787f7dbcdeb306d1867ff373c69955211876c053f91a"
-dependencies = [
- "cc",
-]
-
-[[package]]
 name = "combine"
 version = "4.6.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -423,7 +414,6 @@ dependencies = [
  "lazy_static",
  "prost",
  "prost-build",
- "protobuf-src",
  "redis",
  "reqwest 0.12.9",
  "serde",
@@ -1351,15 +1341,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4759aa0d3a6232fb8dbdb97b61de2c20047c68aca932c7ed76da9d788508d670"
 dependencies = [
  "prost",
-]
-
-[[package]]
-name = "protobuf-src"
-version = "2.1.0+27.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a7edafa3bcc668fa93efafcbdf58d7821bbda0f4b458ac7fae3d57ec0fec8167"
-dependencies = [
- "cmake",
 ]
 
 [[package]]
