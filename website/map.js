@@ -49,7 +49,7 @@
             Alpine.store("selectedVehicle").update(selectedVehicle);
         }
         // fetch metadata if it is not there yet
-        if (selectedVehicle?.trip_id && !selectedVehicle?.stops) {
+        if (selectedVehicle?.trip_id) {
             let vehicle = selectedVehicle;
             let metadata = await getMetadata(vehicle.trip_id);
             vehicle.updateData(metadata);

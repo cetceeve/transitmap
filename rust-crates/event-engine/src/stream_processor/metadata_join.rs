@@ -1,4 +1,6 @@
-use types::{Vehicle, get_trip_metadata_blocking};
+use types::get_trip_metadata_blocking;
+
+use crate::event::Event;
 
 use super::ProcessingStep;
 
@@ -11,12 +13,16 @@ impl MetadataJoiner {
 }
 
 impl ProcessingStep for MetadataJoiner {
-    fn apply(&mut self, vehicle: &mut Vehicle) -> (bool, Option<(String, Vec<u8>)>) {
-        if let Some(ref trip_id) = vehicle.trip_id {
-            vehicle.metadata = get_trip_metadata_blocking(trip_id);
-            (true, None)
+    fn apply(&mut self, event: &mut Event) -> (bool, Option<(String, Vec<u8>)>) {
+        if let Event::Vehicle(vehicle) = event {
+            if let Some(ref trip_id) = vehicle.trip_id {
+                vehicle.metadata = get_trip_metadata_blocking(trip_id);
+                (true, None)
+            } else {
+                (false, None)
+            }
         } else {
-            (false, None)
+            (true, None)
         }
     }
 }

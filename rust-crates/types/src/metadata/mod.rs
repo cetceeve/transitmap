@@ -24,7 +24,7 @@ pub struct VehicleMetadata {
     pub route_id: Option<String>, // TODO: make some of these not optional
     pub direction_id: Option<u8>,
     pub stops: Option<Vec<Stop>>, // sorted by stop_sequence
-    pub real_stop_times: Option<Vec<Option<u64>>>,
+    pub delays: Option<Vec<i32>>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -189,6 +189,6 @@ fn deserialize_stops(raw_item: IntermediateVehicleMetadata) -> VehicleMetadata {
         agency_name: raw_item.agency_name,
         trip_headsign: raw_item.trip_headsign,
         stops: if stop_ids.len() > 0 { Some(stops) } else { None },
-        real_stop_times: None,
+        delays: None,
     }
 }

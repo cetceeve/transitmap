@@ -3,6 +3,12 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Delays {
+    pub trip_id: String,
+    pub delays: Vec<i32>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Vehicle {
     pub id: String,
     pub lng: f32,

@@ -12,4 +12,4 @@ pub use metadata::{
     get_trip_metadata_async,
     get_trip_metadata_blocking
 };
-pub use vehicle::Vehicle;
+pub use vehicle::{Vehicle, Delays};

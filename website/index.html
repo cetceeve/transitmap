@@ -35,9 +35,7 @@
                             <th scope="row" x-text="stop.stop_sequence"></th>
                             <td x-text="stop.stop_name"></td>
                             <td x-text="stop.arrival_time"></td>
-                            <td x-text="$store.selectedVehicle.delay[stop.stop_sequence-1]"
-                                x-bind:style="stop.stop_sequence >= $store.selectedVehicle.firstPredictedSequence && 'color: red'">
-                            </td>
+                            <td x-text="$store.selectedVehicle.delays ? $store.selectedVehicle.delays[stop.stop_sequence-1] + 's' : 'no info'"></td>
                         </tr>
                     </template>
                 </tbody>

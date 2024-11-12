@@ -2132,7 +2132,6 @@ dependencies = [
  "csv",
  "flate2",
  "futures-util",
- "lazy_static",
  "redis",
  "reqwest 0.11.27",
  "serde",
