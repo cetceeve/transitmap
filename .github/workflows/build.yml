@@ -22,6 +22,6 @@ jobs:
 
       - name: Build and push server
         run: |
-            docker build --file server.Dockerfile --tag jonathanarns/sparkling-server:latest -f server.Dockerfile .
+            docker build --tag jonathanarns/sparkling-server:latest -f server.Dockerfile .
             docker push jonathanarns/sparkling-server:latest
 
