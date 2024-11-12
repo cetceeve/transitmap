@@ -7,9 +7,6 @@ pub use metadata::{
     Stop,
     download_metadata_table_async,
     download_metadata_table_blocking,
-    init_async_metadata_table,
-    init_blocking_metadata_table,
-    get_trip_metadata_async,
-    get_trip_metadata_blocking
+    init_metadata_in_redis,
 };
 pub use vehicle::{Vehicle, Delays};

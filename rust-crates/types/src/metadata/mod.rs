@@ -6,11 +6,9 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Value, Map};
 use std::{collections::HashMap, io::Read};
 
-mod sync_table;
-mod async_table;
+mod downloader;
 
-pub use sync_table::{get_trip_metadata_blocking, init_blocking_metadata_table};
-pub use async_table::{get_trip_metadata_async, init_async_metadata_table};
+pub use downloader::init_metadata_in_redis;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct VehicleMetadata {

@@ -3,7 +3,7 @@ services:
   sparkling-redis:
     container_name: sparkling-redis
     hostname: sparkling-redis
-    image: redis:7.2-bookworm
+    image: redis:7.4-bookworm
     restart: on-failure
     ports:
       - '6379:6379'
@@ -15,7 +15,7 @@ services:
 
   event-engine:
     container_name: event-engine
-    image: jonathanarns/sparkling-event-engine
+    image: jonathanarns/sparkling-event-engine:latest
     build: 
       context: ./
       dockerfile: ./event-engine.Dockerfile
@@ -31,7 +31,7 @@ services:
 
   web:
     container_name: server
-    image: jonathanarns/sparkling-server
+    image: jonathanarns/sparkling-server:latest
     build: 
       context: ./
       dockerfile: ./server.Dockerfile

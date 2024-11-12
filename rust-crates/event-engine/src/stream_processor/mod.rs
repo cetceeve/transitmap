@@ -1,5 +1,7 @@
+use std::sync::Arc;
+
 use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender};
-use redis::AsyncCommands;
+use async_trait::async_trait;
 
 mod metadata_join;
 mod delay_processor;
@@ -9,34 +11,30 @@ use crate::event::Event;
 use self::delay_processor::DelayProcessor;
 use self::metadata_join::MetadataJoiner;
 
-pub trait ProcessingStep: Send {
-    /// May mutate the vehicle, or remove it from the stream, by returning `(false, _)`.
-    /// May return an arbitrary binary message to publish to redis on a topic by returning `(_, Some(topic_name, msg))`
-    fn apply(&mut self, vehicle: &mut Event) -> (bool, Option<(String, Vec<u8>)>);
+#[async_trait]
+pub trait ProcessingStep: Send + Sync {
+    /// May mutate the event, or remove it from the stream, by returning `false`.
+    async fn apply(&self, event: &mut Event) -> bool;
 }
 
 /// Processes a steam of Vehicle events.
 pub struct StreamProcessor {
     /// registered processing steps
-    processing_steps: Vec<Box<dyn ProcessingStep>>,
+    processing_steps: Arc<Vec<Box<dyn ProcessingStep>>>,
 }
 
 impl StreamProcessor {
-    pub fn init() -> Self {
+    pub fn init(steps: Vec<Box<dyn ProcessingStep>>) -> Self {
         Self {
-            processing_steps: vec![],
+            processing_steps: Arc::new(steps),
         }
     }
 
-    pub fn register_step(&mut self, step: Box<dyn ProcessingStep>) {
-        self.processing_steps.push(step);
-    }
-
     pub async fn default() -> Self {
-        let mut processor = Self::init();
-        processor.register_step(Box::new(MetadataJoiner::init()));
-        processor.register_step(Box::new(DelayProcessor::init()));
-        processor
+        let mut steps: Vec<Box<dyn ProcessingStep>> = vec![];
+        steps.push(Box::new(MetadataJoiner::init()));
+        steps.push(Box::new(DelayProcessor::init()));
+        Self::init(steps)
     }
 
     pub async fn run(
@@ -44,23 +42,21 @@ impl StreamProcessor {
         mut receiver: UnboundedReceiver<Event>,
         sender: UnboundedSender<Event>,
     ) {
-        let redis_client = redis::Client::open("redis://sparkling-redis/").unwrap();
-        let mut redis_conn = redis_client.get_tokio_connection().await.unwrap();
-        'EVENT_LOOP: loop {
-            let mut vehicle = receiver.recv().await.expect("broken internal channel");
+        loop {
+            let mut event = receiver.recv().await.expect("broken internal channel");
 
-            // precessing steps
-            for step in &mut self.processing_steps {
-                let (keep_event, message) = step.apply(&mut vehicle);
-                if let Some((topic_name, data)) = message {
-                    redis_conn.publish::<_,_,()>(topic_name, data).await.unwrap();
+            let sender_clone = sender.clone();
+            let steps = self.processing_steps.clone();
+            tokio::spawn(async move {
+                for step in steps.iter() {
+                    let keep_event = step.apply(&mut event).await;
+                    if !keep_event {
+                        break
+                    }
                 }
-                if !keep_event {
-                    continue 'EVENT_LOOP
-                }
-            }
+                sender_clone.send(event).expect("broken internal channel");
+            });
 
-            sender.send(vehicle).expect("broken internal channel");
         }
     }
 }

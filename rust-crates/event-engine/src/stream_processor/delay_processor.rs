@@ -1,27 +1,28 @@
 use std::collections::HashMap;
+use async_trait::async_trait;
 
-use types::{Delays, Vehicle, VehicleMetadata};
+use tokio::sync::Mutex;
+use types::{redis_util::{redis_set, redis_get}, Vehicle, VehicleMetadata};
 
 use crate::event::Event;
 
 use super::ProcessingStep;
 
 pub struct DelayProcessor {
-    delays: HashMap<String, Vec<i32>>,
-    number_of_stops: HashMap<String, usize>,
+    number_of_stops: Mutex<HashMap<String, usize>>,
 }
 
 impl DelayProcessor {
     pub fn init() -> Self {
         Self {
-            delays: Default::default(),
             number_of_stops: Default::default(),
         }
     }
 }
 
+#[async_trait]
 impl ProcessingStep for DelayProcessor {
-    fn apply(&mut self, event: &mut Event) -> (bool, Option<(String, Vec<u8>)>) {
+    async fn apply(&self, event: &mut Event) -> bool {
         match event {
             Event::Vehicle(Vehicle {
                 trip_id: Some(trip_id),
@@ -31,12 +32,14 @@ impl ProcessingStep for DelayProcessor {
                 }),
                 ..
             }) => {
-                self.number_of_stops.insert(trip_id.clone(), stops.len());
-                (true, None)
+                self.number_of_stops.lock().await.insert(trip_id.clone(), stops.len());
+                true
             },
             Event::TripUpdate(updates) => {
-                if let Some(num_stops) = self.number_of_stops.get(&updates.trip_id) {
-                    let mut delays = vec![];
+                let num_stops = self.number_of_stops.lock().await.get(&updates.trip_id).map(|x| x.to_owned());
+                if let Some(num_stops) = num_stops {
+                    let key = String::from("delays:") + &updates.trip_id;
+                    let mut delays = redis_get::<Vec<i32>>(&key).await.unwrap_or_else(|_| Vec::<i32>::with_capacity(32));
                     for update in updates.time_updates.iter() {
                         while update.stop_sequence as usize > delays.len() + 1 {
                             if delays.len() > 1 {
@@ -46,24 +49,27 @@ impl ProcessingStep for DelayProcessor {
                             }
                         }
                         if let Some(delay) = update.delay_secs {
-                            delays.push(delay);
+                            if delays.len() >= update.stop_sequence as usize {
+                                delays[update.stop_sequence as usize - 1] = delay;
+                            } else {
+                                delays.push(delay);
+                            }
                         }
                     }
-                    while delays.len() < *num_stops {
+                    while delays.len() < num_stops {
                         if delays.len() > 1 {
                             delays.push(*delays.last().unwrap());
                         } else {
                             delays.push(0);
                         }
                     }
-                    self.delays.insert(updates.trip_id.clone(), delays.clone());
-                    let real_stop_times = Delays{ trip_id: updates.trip_id.clone(), delays };
-                    (false, Some((String::from("trip-updates"), serde_json::to_vec(&real_stop_times).unwrap())))
+                    let _ = redis_set(&key, delays, Some(1000)).await.unwrap();
+                    false
                 } else {
-                    (false, None)
+                    false
                 }
             },
-            _ => (true, None),
+            _ => true
         }
     }
 }

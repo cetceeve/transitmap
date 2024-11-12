@@ -1,4 +1,5 @@
-use types::get_trip_metadata_blocking;
+use types::redis_util::redis_get;
+use async_trait::async_trait;
 
 use crate::event::Event;
 
@@ -12,17 +13,19 @@ impl MetadataJoiner {
     }
 }
 
+#[async_trait]
 impl ProcessingStep for MetadataJoiner {
-    fn apply(&mut self, event: &mut Event) -> (bool, Option<(String, Vec<u8>)>) {
+    async fn apply(&self, event: &mut Event) -> bool {
         if let Event::Vehicle(vehicle) = event {
             if let Some(ref trip_id) = vehicle.trip_id {
-                vehicle.metadata = get_trip_metadata_blocking(trip_id);
-                (true, None)
+                let key = String::from("trip_meta:") + trip_id;
+                vehicle.metadata = redis_get(&key).await.ok();
+                true
             } else {
-                (false, None)
+                false
             }
         } else {
-            (true, None)
+            true
         }
     }
 }

@@ -1,5 +1,5 @@
 use event::Event;
-use types::{init_blocking_metadata_table, Vehicle};
+use types::{init_metadata_in_redis, Vehicle};
 use tokio::sync::mpsc;
 use redis::AsyncCommands;
 
@@ -10,7 +10,7 @@ mod event;
 
 #[tokio::main]
 async fn main() {
-    init_blocking_metadata_table();
+    init_metadata_in_redis().await;
     let (input_sender, input_receiver) = mpsc::unbounded_channel::<Event>();
     let (output_sender, mut output_receiver) = mpsc::unbounded_channel::<Event>();
     let mut processor = stream_processor::StreamProcessor::default().await;
