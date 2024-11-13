@@ -63,7 +63,7 @@ impl ProcessingStep for DelayProcessor {
                             delays.push(0);
                         }
                     }
-                    let _ = redis_set(&key, delays, Some(1000)).await.unwrap();
+                    let _ = redis_set(&key, delays, Some(1000)).await;
                     false
                 } else {
                     false
