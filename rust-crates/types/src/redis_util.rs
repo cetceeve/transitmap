@@ -39,6 +39,11 @@ pub async fn redis_get<V: DeserializeOwned>(key: &str) -> anyhow::Result<V> {
     Ok(value)
 }
 
+/// Publishes to a redis PubSub topic. Fails silently.
+pub async fn redis_publish(topic: &str, data: Vec<u8>) {
+    let _ = connection().await.publish::<_,_,()>(topic, data).await;
+}
+
 pub async fn subscribe(topic: &str) -> Receiver<String> {
     let mut locked_broadcasts = REDIS_BROADCASTS.lock().await;
     if let Some(broadcast) = locked_broadcasts.get(topic) {
@@ -63,7 +68,8 @@ async fn run_subscriber(topic: &str, sender: Sender<String>) {
     while let Some(msg) = rx.recv().await {
         match msg.kind {
             PushKind::Message => {
-                for item in msg.data {
+                // msg.data is a Vec of shape [topic, data]
+                if let Some(item) = msg.data.get(1) {
                     if let Ok(data) = String::from_redis_value(&item) {
                         let _ = sender.send(data);
                     }
