@@ -5,8 +5,6 @@ services:
     hostname: sparkling-redis
     image: redis:7.4-bookworm
     restart: on-failure
-    ports:
-      - '6379:6379'
     command: redis-server --save 300 100 --loglevel warning
     volumes: 
       - redis-volume:/data
@@ -44,45 +42,6 @@ services:
     environment:
       - RUST_BACKTRACE=1
     restart: on-failure
-
-  # feature-uploader:
-  #   container_name: feature-uploader
-  #   image: fabianzeiher/sparkling-feature-uploader
-  #   build: ./feature-uploader
-  #   depends_on:
-  #     - event-engine
-  #     - sparkling-redis
-  #   env_file:
-  #     - .env
-  #   networks:
-  #     - sparkling-bridge
-
-  # inference-pipeline:
-  #   container_name: inference-pipeline
-  #   image: fabianzeiher/sparkling-inference-pipeline
-  #   build: ./inference-pipeline
-  #   depends_on:
-  #     - event-engine
-  #     - sparkling-redis
-  #   env_file:
-  #     - .env
-  #   networks:
-  #     - sparkling-bridge
-  
-  # rt-data-exporter:
-  #   container_name: rt-data-exporter
-  #   image: fabianzeiher/sparkling-rt-data-exporter
-  #   build: ./rt-data-exporter
-  #   depends_on:
-  #     - event-engine
-  #     - sparkling-redis
-  #   environment:
-  #     - RUST_BACKTRACE=1
-  #     - GOOGLE_APPLICATION_CREDENTIALS=/gcp/creds.json
-  #   networks:
-  #     - sparkling-bridge
-  #   volumes:
-  #     - $HOME/.config/gcloud/application_default_credentials.json:/gcp/creds.json:ro
 
 volumes:
   redis-volume:
