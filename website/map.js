@@ -23,7 +23,7 @@
     L.Control.CustomViewControl = L.Control.extend({
         onAdd: function(map) {
             let template = document.createElement("template");
-            template.innerHTML = "<select><option value='delay' onclick='setMapViewMode(\"delay\")'>Delay View</option><option value='basic' onclick='setMapViewMode(\"basic\")'>Basic View</option></select>"
+            template.innerHTML = "<select><option selected value='basic' onclick='setMapViewMode(\"basic\")'>Basic View</option><option value='delay' onclick='setMapViewMode(\"delay\")'>Delay View</option></select>"
             return template.content.firstChild;
         },
         onRemove: function(map) { }
