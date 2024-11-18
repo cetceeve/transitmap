@@ -119,6 +119,7 @@ async fn run_client(url: String, interval: Duration, sender: UnboundedSender<Eve
                                     timestamp: ts,
                                     metadata: None,
                                     delay: None,
+                                    stop_seq: None,
                                 });
                                 sender.send(event).expect("internal channel broken");
                             }

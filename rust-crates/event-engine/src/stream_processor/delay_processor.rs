@@ -32,6 +32,7 @@ impl ProcessingStep for DelayProcessor {
                     ..
                 }),
                 delay,
+                stop_seq,
                 ..
             }) => {
                 self.number_of_stops.lock().await.insert(trip_id.clone(), stops.len());
@@ -57,7 +58,7 @@ impl ProcessingStep for DelayProcessor {
                         stop_time.with_second(s);
                         if stop_time + TimeDelta::seconds(delays[i] as i64) > now {
                             *delay = Some(delays[i]);
-                            // TODO: could also record the next stop's sequence here
+                            *stop_seq = Some(stop.stop_sequence);
                         }
                     }
                 }

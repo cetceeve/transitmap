@@ -18,6 +18,8 @@ pub struct Vehicle {
     pub metadata: Option<VehicleMetadata>,
     /// The current delay at the next stop
     pub delay: Option<i32>,
+    /// The vehicle's next stop's stop_sequence
+    pub stop_seq: Option<u16>,
 }
 
 impl Vehicle {
@@ -35,6 +37,9 @@ impl Vehicle {
         }
         if let Some(delay) = self.delay {
             map.insert("delay".to_string(), Value::from(delay));
+        }
+        if let Some(seq) = self.delay {
+            map.insert("stop_seq".to_string(), Value::from(seq));
         }
         serde_json::to_vec(&Value::Object(map)).unwrap()
     }
