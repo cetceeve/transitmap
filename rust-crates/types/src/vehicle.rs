@@ -16,6 +16,8 @@ pub struct Vehicle {
     pub timestamp: u64,
     pub trip_id: Option<String>,
     pub metadata: Option<VehicleMetadata>,
+    /// The current delay at the next stop
+    pub delay: Option<i32>,
 }
 
 impl Vehicle {
@@ -30,6 +32,9 @@ impl Vehicle {
             if let Some(route_type) = m.route_type {
                 map.insert("route_type".to_string(), Value::from(route_type));
             }
+        }
+        if let Some(delay) = self.delay {
+            map.insert("delay".to_string(), Value::from(delay));
         }
         serde_json::to_vec(&Value::Object(map)).unwrap()
     }

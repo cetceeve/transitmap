@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use async_trait::async_trait;
 
+use chrono::{FixedOffset, TimeDelta, TimeZone, Timelike, Utc};
 use tokio::sync::Mutex;
 use types::{redis_util::{redis_set, redis_get}, Vehicle, VehicleMetadata};
 
@@ -30,9 +31,36 @@ impl ProcessingStep for DelayProcessor {
                     stops: Some(stops),
                     ..
                 }),
+                delay,
                 ..
             }) => {
                 self.number_of_stops.lock().await.insert(trip_id.clone(), stops.len());
+                let key = String::from("delays:") + &trip_id;
+                if let Ok(delays) = redis_get::<Vec<i32>>(&key).await {
+                    let now = FixedOffset::west_opt(3600).unwrap().from_utc_datetime(&Utc::now().naive_utc());
+                    for (i, stop) in stops.iter().enumerate() {
+                        let mut parts = stop.arrival_time.split(":");
+                        let mut h: u32 = parts.next().map(|x| x.parse::<u32>().unwrap_or(0)).unwrap_or(0);
+                        let m: u32 = parts.next().map(|x| x.parse::<u32>().unwrap_or(0)).unwrap_or(0);
+                        let s: u32 = parts.next().map(|x| x.parse::<u32>().unwrap_or(0)).unwrap_or(0);
+                        let mut stop_time = FixedOffset::west_opt(3600).unwrap().from_utc_datetime(&Utc::now().naive_utc());
+                        if h > 24 {
+                            if now.hour() > 12 {
+                                stop_time += TimeDelta::days(1);
+                            } else {
+                                stop_time += TimeDelta::days(-1);
+                            }
+                        }
+                        h = h % 24;
+                        stop_time.with_hour(h);
+                        stop_time.with_minute(m);
+                        stop_time.with_second(s);
+                        if stop_time + TimeDelta::seconds(delays[i] as i64) > now {
+                            *delay = Some(delays[i]);
+                            // TODO: could also record the next stop's sequence here
+                        }
+                    }
+                }
                 true
             },
             Event::TripUpdate(updates) => {

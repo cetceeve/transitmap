@@ -15,3 +15,7 @@ let selectedVehicle;
 
 // the minimum zoom level at which vehicles are clickable
 const clickableZoomLevel = 13;
+
+// the view mode of the map
+// allowed values: "delay", "basic"
+let mapViewMode = "basic";

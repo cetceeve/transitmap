@@ -16,6 +16,23 @@
 
     map = initiateLeaflet();
 
+    function setMapViewMode(mode) {
+        mapViewMode = mode;
+        console.log(mode);
+    }
+    L.Control.CustomViewControl = L.Control.extend({
+        onAdd: function(map) {
+            let template = document.createElement("template");
+            template.innerHTML = "<select><option value='delay' onclick='setMapViewMode(\"delay\")'>Delay View</option><option value='basic' onclick='setMapViewMode(\"basic\")'>Basic View</option></select>"
+            return template.content.firstChild;
+        },
+        onRemove: function(map) { }
+    });
+    L.control.customViewControl = function(opts) {
+        return new L.Control.CustomViewControl(opts);
+    }
+    L.control.customViewControl({ position: "topright" }).addTo(map);
+
     map.locate({ watch: true, enableHighAccuracy: true });
     map.on("locationfound", function(e) {
         let latlng = [e.latitude, e.longitude];

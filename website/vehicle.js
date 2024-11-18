@@ -10,7 +10,7 @@ function newVehicle(data) {
 class Vehicle {
     constructor(data) {
         this._assign(data);
-        this.color = routeTypeToColor(data.route_type);
+        this.type = routeTypeToVehicleType(data.route_type);
         this.initAnimationState();
     }
     updateData(data, onScreen) {
@@ -76,34 +76,34 @@ class Vehicle {
     }
 }
 
-function routeTypeToColor(routeType) {
+function routeTypeToVehicleType(routeType) {
     if (!routeType) {
-        return "#8B8B8B";
+        return "other";
     }
     // train
     if (routeType < 400) {
-        return "#FF7600";
+        return "train";
     }
     // metro
     if (routeType < 700) {
-        return "#D61355";
+        return "metro";
     }
     // bus
     if (routeType < 900) {
-        return "#0078FF";
+        return "bus";
     }
     // tram
     if (routeType < 1000) {
-        return "#2BA714";
+        return "tram";
     }
     // water
     if (routeType == 1000 || routeType == 1200) {
-        return "#0D1282";
+        return "ferry";
     }
     // taxi
     if (routeType >= 1500 && routeType <= 1507) {
-        return "#FBCB0A";
+        return "taxi";
     }
     // other
-    return "#8B8B8B";
+    return "other";
 }

@@ -39,14 +39,59 @@
 	taxiIcon.src = "./images/taxi_icon.png";
 	const otherIcon = new Image();
 	otherIcon.src = "./images/other_icon.png";
-	const iconsByColor = {
-		"#FF7600": trainIcon,
-		"#D61355": metroIcon,
-		"#0078FF": busIcon,
-		"#2BA714": tramIcon,
-		"#0D1282": ferryIcon,
-		"#FBCB0A": taxiIcon,
-		"#8B8B8B": otherIcon,
+	const colorsByType = {
+		"train": "#FF7600",
+		"metro": "#D61355",
+		"bus": "#0078FF",
+		"tram": "#2BA714",
+		"ferry": "#0D1282",
+		"taxi": "#FBCB0A",
+		"other": "#8B8B8B",
+	};
+	const iconsByType = {
+		"train": trainIcon,
+		"metro": metroIcon,
+		"bus": busIcon,
+		"tram": tramIcon,
+		"ferry": ferryIcon,
+		"taxi": taxiIcon,
+		"other": otherIcon,
+	};
+	function drawVehicle(ctx, vehicle, zoom, point, pointRadius) {
+		let color;
+		if (mapViewMode == "delay") {
+			if (vehicle.delay) {
+				if (vehicle.delay > 120) {
+					color = "hsl(0, 100%, 45%)";
+				} else if (vehicle.delay > 60) {
+					color = "hsl(39, 100%, 50%)";
+				} else if (vehicle.delay > -60) {
+					color = "hsl(120, 100%, 35%)";
+				} else {
+					color = "hsl(200, 100%, 40%)";
+				}
+			} else {
+				color = "hsl(120, 100%, 35%)";
+			}
+		} else {
+			// basic view style: colors based on vehicle type
+			color = colorsByType[vehicle.type];
+		}
+
+		ctx.beginPath();
+		ctx.fillStyle = color;
+		if (zoom < clickableZoomLevel) {
+			ctx.arc(point.x, point.y, pointRadius, 0, 2*Math.PI);
+		} else {
+			ctx.arc(point.x, point.y, pointRadius, 0, 2*Math.PI);
+		}
+		ctx.fill();
+
+		// then draw the icon on top
+		if (zoom >= clickableZoomLevel) {
+			let halfSideLen = pointRadius - pointRadius/3;
+			ctx.drawImage(iconsByType[vehicle.type], point.x-halfSideLen, point.y-halfSideLen, 2*halfSideLen, 2*halfSideLen);
+		}
 	}
 
 	// our custom canvasLayer, used to render vehicles
@@ -93,26 +138,12 @@
 					}
 
 					// draw
-					if (zoom < clickableZoomLevel) {
-						ctx.beginPath();
-						ctx.fillStyle = vehicle.color;
-						ctx.arc(point.x, point.y, pointRadius, 0, 2*Math.PI);
-						ctx.fill();
-					} else {
-						ctx.drawImage(iconsByColor[vehicle.color], point.x-pointRadius, point.y-pointRadius, 2*pointRadius, 2*pointRadius);
-					}
+					drawVehicle(ctx, vehicle, zoom, point, pointRadius);
 				});
 				// highlight selected vehicle
 				if (selectedVehicle && vehiclesOnScreen.has(selectedVehicle.id)) {
 					// draw the vehicle again on top
-					if (zoom < clickableZoomLevel) {
-						ctx.beginPath();
-						ctx.fillStyle = selectedVehicle.color;
-						ctx.arc(selectedVehicle.containerPoint.x, selectedVehicle.containerPoint.y, pointRadius, 0, 2*Math.PI);
-						ctx.fill();
-					} else {
-						ctx.drawImage(iconsByColor[selectedVehicle.color], selectedVehicle.containerPoint.x-pointRadius, selectedVehicle.containerPoint.y-pointRadius, 2*pointRadius, 2*pointRadius);
-					}
+					drawVehicle(ctx, selectedVehicle, zoom, selectedVehicle.containerPoint, pointRadius);
 					// draw highlight circle
 					ctx.beginPath();
 					ctx.strokeStyle = "red";

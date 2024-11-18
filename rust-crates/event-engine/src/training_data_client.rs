@@ -81,6 +81,7 @@ impl TrainingDataClient {
                         timestamp: record.timestamp,
                         trip_id: record.trip_id,
                         metadata: None,
+                        delay: None,
                     }).await.expect("Internal channel broken.");
                 }
                 self.file_index = self.file_index + 1;
