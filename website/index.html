@@ -1,63 +1,90 @@
 <!doctype html>
 <html lang=en>
 
-<head>
-    <meta charset=utf-8>
-    <title>Transitmap</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-</head>
+    <head>
+        <meta charset=utf-8>
+        <title>Transitmap</title>
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+        <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    </head>
 
-<body style="padding: 0; margin: 0">
-    <div id="map" style="height: 90dvh;"></div>
-    <div x-data class="container">
-        <div>
-            <div style="display: flex;flex-direction: row;justify-content: space-between;margin-top: 0.5em;">
-                <h3 x-data="" x-text="$store.selectedVehicle.displayText">no vehicle</h3>
-                <div onclick="scrollToTimetable()" style="cursor: pointer;"><a id="ttbttn" class="secondary" role="button">Timetable</a></div>
+    <body style="padding: 0; margin: 0">
+        <div id="map" style="height: 90dvh;"></div>
+        <div x-data class="container-fluid">
+            <div>
+                <div style="display: flex;flex-direction: row;justify-content: space-between;margin-top: 0.5em;">
+                    <h3 x-data x-text="$store.selectedVehicle.displayText">no vehicle</h3>
+                    <div onclick="scrollToTimetable()" style="cursor: pointer;"><a id="ttbttn" class="secondary" role="button">Timetable</a></div>
+                </div>
             </div>
-        </div>
-        <figure>
-            <table id="timetable">
-                <thead>
-                    <tr>
-                        <th scope="col">#</th>
-                        <th scope="col">Stop</th>
-                        <th scope="col">Scheduled</th>
-                        <th scope="col">Delay</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <template x-data x-for="stop in $store.selectedVehicle.stops">
+            <figure>
+                <table id="timetable" x-data="{ showPrevious: false }" style="table-layout: fixed; width: 100%">
+                    <colgroup>
+                        <col style="width: 1.5em" />
+                        <col />
+                        <col />
+                    </colgroup>
+                    <thead>
                         <tr>
-                            <th scope="row" x-text="stop.stop_sequence"></th>
-                            <td x-text="stop.stop_name"></td>
-                            <td x-text="stop.arrival_time"></td>
-                            <td x-text="$store.selectedVehicle.delays.length > 1 ? $store.selectedVehicle.delays[stop.stop_sequence-1] + 's' : 'no info'"></td>
+                            <th scope="col"></th>
+                            <th scope="col">Stop</th>
+                            <th scope="col">Arrival</th>
                         </tr>
-                    </template>
-                </tbody>
-            </table>
-        </figure>
-        <p x-text="$store.selectedVehicle.agency_name">Click on a vehicle.</p>
-    </div>
+                    </thead>
+                    <tbody>
+                        <tr style="position: relative">
+                            <td><input type="checkbox" x-model="showPrevious"/></td>
+                            <td><span>Show previous stops</span></td>
+                            <td></td>
+                        </tr>
+                        <template x-for="stop in $store.selectedVehicle.stops">
+                            <tr x-data="{
+                                    isPrevious() { return stop.stop_sequence < $store.selectedVehicle.stopSequence },
+                                    isFirst() { return stop.stop_sequence == 1 },
+                                    isLast() { return stop.stop_sequence == $store.selectedVehicle.stops.length }
+                                }"
+                                x-show="stop.stop_sequence >= $store.selectedVehicle.stopSequence - 1 || showPrevious"
+                                x-transition
+                                style="position: relative"
+                            >
+                                <td><div
+                                    style="position: absolute; top: 0; bottom: 0; width: 1em"
+                                    x-bind:style="{
+                                        background: isPrevious() ? 'blue' : 'grey',
+                                        top: isFirst() ? '20%' : 0,
+                                        bottom: isLast() ? '20%' : 0,
+                                        'border-top-left-radius': isFirst() ? '50%  20%' : 0,
+                                        'border-top-right-radius': isFirst() ? '50%  20%' : 0,
+                                        'border-bottom-left-radius': isLast() ? '50%  20%' : 0,
+                                        'border-bottom-right-radius': isLast() ? '50%  20%' : 0
+                                    }"
+                                ></div></td>
+                                <td x-text="stop.stop_name"></td>
+                                <td x-html="stop.arrival_time + $store.selectedVehicle.getFormattedDelay(stop.stop_sequence)"></td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </figure>
+            <p x-text="$store.selectedVehicle.agencyName">Click on a vehicle.</p>
+        </div>
 
-    <script>
-        function scrollToTimetable() {
-            document.getElementById("timetable").scrollIntoView({ behavior: "smooth", inline:"center"});
-        };
-    </script>
-    <script type="text/javascript" src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    <script type="text/javascript" src="https://unpkg.com/leaflet-customlayer@2.1.0/dist/Leaflet.CustomLayer.js"></script>
-    <script type="text/javascript" src="./globals.js"></script>
-    <script type="text/javascript" src="./util.js"></script>
-    <script type="text/javascript" src="./map.js"></script>
-    <script type="text/javascript" src="./store.js"></script>
-    <script type="text/javascript" src="./vehicle.js"></script>
-    <script type="text/javascript" src="./eventsource.js"></script>
-    <script type="text/javascript" src="./animation.js"></script>
-</body>
+        <script>
+            function scrollToTimetable() {
+                document.getElementById("timetable").scrollIntoView({ behavior: "smooth", inline:"center"});
+            };
+        </script>
+        <script type="text/javascript" src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+        <script type="text/javascript" src="https://unpkg.com/leaflet-customlayer@2.1.0/dist/Leaflet.CustomLayer.js"></script>
+        <script type="text/javascript" src="./globals.js"></script>
+        <script type="text/javascript" src="./util.js"></script>
+        <script type="text/javascript" src="./map.js"></script>
+        <script type="text/javascript" src="./store.js"></script>
+        <script type="text/javascript" src="./vehicle.js"></script>
+        <script type="text/javascript" src="./eventsource.js"></script>
+        <script type="text/javascript" src="./animation.js"></script>
+    </body>
 
 </html>

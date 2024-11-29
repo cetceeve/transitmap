@@ -18,7 +18,6 @@
 
     function setMapViewMode(mode) {
         mapViewMode = mode;
-        console.log(mode);
     }
     L.Control.CustomViewControl = L.Control.extend({
         onAdd: function(map) {

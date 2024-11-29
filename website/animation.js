@@ -62,16 +62,16 @@
 		if (mapViewMode == "delay") {
 			if (vehicle.delay) {
 				if (vehicle.delay > 120) {
-					color = "hsl(0, 100%, 45%)";
+					color = "hsl(0, 100%, 45%)"; // red
 				} else if (vehicle.delay > 60) {
-					color = "hsl(39, 100%, 50%)";
+					color = "hsl(39, 100%, 50%)"; // yellow
 				} else if (vehicle.delay > -60) {
-					color = "hsl(120, 100%, 35%)";
+					color = "hsl(120, 100%, 35%)"; // green
 				} else {
-					color = "hsl(200, 100%, 40%)";
+					color = "hsl(200, 100%, 40%)"; // blue
 				}
 			} else {
-				color = "hsl(120, 100%, 35%)";
+				color = "hsl(120, 100%, 35%)"; // green
 			}
 		} else {
 			// basic view style: colors based on vehicle type

@@ -38,7 +38,7 @@ impl Vehicle {
         if let Some(delay) = self.delay {
             map.insert("delay".to_string(), Value::from(delay));
         }
-        if let Some(seq) = self.delay {
+        if let Some(seq) = self.stop_seq {
             map.insert("stop_seq".to_string(), Value::from(seq));
         }
         serde_json::to_vec(&Value::Object(map)).unwrap()
